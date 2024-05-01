@@ -47,7 +47,9 @@ L.BrowserPrint.Helper = {
 		};
 	},
 	getPaperSize: function (mode) {
-		if (mode.options.pageSeries) {
+		if(mode.options.customSize){
+			return mode.options.customSize;
+		}else if (mode.options.pageSeries) {
 			var series = L.BrowserPrint.Size[mode.options.pageSeries];
 			var w = series.Width;
 			var h = series.Height;
@@ -86,10 +88,19 @@ L.BrowserPrint.Helper = {
 		var height = Math.floor(size.Height - topbottom);
 		var width = Math.floor(size.Width - leftright);
 
-		size.Width = width * (window.devicePixelRatio || 1) + 'mm';
-		size.Height = height * (window.devicePixelRatio || 1) + 'mm';
+		var unit = size.Unit || 'mm';
 
-		return size;
+		if(unit === 'mm'){
+			return {
+				Width: width * (window.devicePixelRatio || 1) + 'mm',
+				Height: height * (window.devicePixelRatio || 1) + 'mm'
+			}
+		}else{
+			return {
+				Width: width + unit,
+				Height: height + unit
+			}
+		}
 	}
 };
 

@@ -70,6 +70,7 @@ function resetHighlight(e) {
 }
 
 function zoomToFeature(e) {
+    window.lastBounds = e.target.getBounds();
     map.fitBounds(e.target.getBounds());
 }
 

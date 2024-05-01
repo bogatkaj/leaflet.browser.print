@@ -132,6 +132,44 @@ L.BrowserPrint = L.Class.extend({
 			this._clearPrint();
 		}
 	},
+	printByBounds: function (bounds, options){
+		if(!options || !options.width || !options.height || !options.unit){
+			console.error("Please pass width, height and unit in a options object");
+			return;
+		}
+
+		if(this._map.isPrinting){
+			console.error("printing is already active");
+			return;
+		}
+
+		var mode = this._getMode("Portrait", L.BrowserPrint.Mode.Custom("Custom",{title:"", customSize: {Width: options.width, Height: options.height, Unit: options.unit}}));
+
+		this._map.isPrinting = true;
+		this.cancelNextPrinting = false;
+		this.activeMode = mode;
+
+		this._print(mode, bounds);
+	},
+    printByLatLng: function (latlng, zoom, options){
+        if(!options || !options.width || !options.height || !options.unit){
+            console.error("Please pass width, height and unit in a options object");
+            return;
+        }
+
+        if(this._map.isPrinting){
+            console.error("printing is already active");
+            return;
+        }
+
+        var mode = this._getMode("Portrait", L.BrowserPrint.Mode.Custom("Custom",{title:"", customSize: {Width: options.width, Height: options.height, Unit: options.unit}}));
+
+        this._map.isPrinting = true;
+        this.cancelNextPrinting = false;
+        this.activeMode = mode;
+
+        this._print(mode, null, latlng, zoom);
+    },
 	_removeAutoPolygon: function(){
 
 		this._map.off('mousedown', this._startAutoPolygon, this);
@@ -190,7 +228,7 @@ L.BrowserPrint = L.Class.extend({
 		this.activeMode = mode;
 		this['_print' + mode.mode](mode);
 	},
-	_print: function (printMode, autoBounds) {
+	_print: function (printMode, autoBounds, center, zoom) {
 		this._map.fire(L.BrowserPrint.Event.PrintInit, { mode: printMode });
 		if(this.options.cancelWithEsc) {
 			L.DomEvent.on(document, 'keyup', this._keyUpCancel, this);
@@ -208,7 +246,8 @@ L.BrowserPrint = L.Class.extend({
 			height: mapContainer.style.height,
 			documentTitle: document.title,
 			printLayer: L.BrowserPrint.Utils.cloneLayer(this.options.printLayer),
-			panes: []
+			panes: [],
+            center: center || this._map.getCenter()
 		};
 
 		var mapPanes = this._map.getPanes();
@@ -233,15 +272,15 @@ L.BrowserPrint = L.Class.extend({
 
 		this._map.fire(L.BrowserPrint.Event.PrintStart, { printLayer: origins.printLayer, printMap: overlay.map, printObjects: overlay.objects });
 
-		if (options.invalidateBounds) {
+		if (options.invalidateBounds && !(center && zoom)) {
 			overlay.map.fitBounds(origins.bounds);
 			overlay.map.invalidateSize({reset: true, animate: false, pan: false});
 		} else {
-			overlay.map.setView(this._map.getCenter(), this._map.getZoom());
+			overlay.map.setView(origins.center, this._map.getZoom());
 		}
 
-		if(options.zoom){
-			overlay.map.setZoom(options.zoom);
+		if(zoom || options.zoom){
+			overlay.map.setZoom(zoom || options.zoom);
 		}else if(!options.enableZoom){
 			overlay.map.setZoom(this._map.getZoom());
 		}
@@ -440,6 +479,7 @@ L.BrowserPrint = L.Class.extend({
 		if (isMultipage) {
 			var pagesContainer = document.createElement("div");
 			pagesContainer.className = "pages-print-container";
+			// TODO: 0!important???!
 			pagesContainer.style.margin = "0!important";
 			this._setupPrintPagesWidth(pagesContainer, printSize, pageOrientation);
 

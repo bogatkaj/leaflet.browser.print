@@ -45,13 +45,18 @@ L.BrowserPrint.Mode = L.Class.extend({
             this.options.title = this.mode;
         }
 
-        if(this.mode === "Portrait" || this.mode === "Landscape"){
-            this.options.orientation = this.mode;
-        }
+        if(this.options.pageSize === 'Custom'){
+			this.options.orientation = "Portrait";
+			this.options.margin = 0;
+		}else {
+			if (this.mode === "Portrait" || this.mode === "Landscape") {
+				this.options.orientation = this.mode;
+			}
 
-        this.options.pageSize = (this.options.pageSize || 'A4').toUpperCase();
-        this.options.pageSeries = ["A", "B", "C", "D"].indexOf(this.options.pageSize[0]) !== -1 ? this.options.pageSize[0] : "";
-        this.options.pageSeriesSize = this.options.pageSize.substring(this.options.pageSeries.length);
+			this.options.pageSize = (this.options.pageSize || 'A4').toUpperCase();
+			this.options.pageSeries = ["A", "B", "C", "D"].indexOf(this.options.pageSize[0]) !== -1 ? this.options.pageSize[0] : "";
+			this.options.pageSeriesSize = this.options.pageSize.substring(this.options.pageSeries.length);
+		}
         this.options.action = this.options.action || function (context, element) {
             return function () {
                 context._printMode(element)

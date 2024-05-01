@@ -28,6 +28,7 @@
 	<body>
 
 		<div id='map'></div>
+		<div id="imgs"></div>
 
 		<script type="text/javascript">
 			var map = L.map("map").setView([37.8, -96], 4);
@@ -39,23 +40,43 @@
 				attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 			}).addTo(map);
 
+			var imgDiv = document.getElementById("imgs");
+
 			var saveAsImage = function () {
-				return domtoimage.toPng(document.body)
+				var printMap = document.getElementById("map-print");
+				return domtoimage.toPng(printMap, {width: printMap.offsetWidth, height: printMap.offsetHeight})
 						.then(function (dataUrl) {
 							var link = document.createElement('a');
 							link.download = map.printControl.options.documentTitle || "exportedMap" + '.png';
 							link.href = dataUrl;
-							link.click();
+
+							var img = document.createElement("img");
+							img.src = dataUrl;
+
+							link.appendChild(img);
+							imgDiv.appendChild(link)
 						});
 			}
 
-				L.control.browserPrint({
-					documentTitle: "printImage",
-					printModes: [
-						L.BrowserPrint.Mode.Auto("Download PNG"),
-					],
-					printFunction: saveAsImage
-				}).addTo(map);
+			L.control.browserPrint({
+				documentTitle: "printImage",
+				printModes: [
+					L.BrowserPrint.Mode.Auto("Download PNG"),
+				],
+				printFunction: saveAsImage
+			}).addTo(map);
+
+			var browserPrint = L.browserPrint(map,{debug:false, cancelWithEsc: true, printFunction: saveAsImage});
+
+
+            function createMarkerImage(latlng, zoom){
+                browserPrint.setOptions({zoom: zoom});
+
+                browserPrint.printBounds(window.lastBounds, {width: '500', height: '300', unit: 'px'})
+            }
+
+
+
 
 		</script>
 
