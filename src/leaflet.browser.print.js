@@ -661,7 +661,7 @@ L.BrowserPrint = L.Class.extend({
 
 		var self = this;
 		L.DomEvent.on(manualPrintButton, 'click', function () {
-			self.browserPrint._completePrinting(map, origins, objects);
+			self._completePrinting(map, origins, objects);
 		});
 	},
 });
